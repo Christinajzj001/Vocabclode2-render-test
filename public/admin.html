@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VocabCloud — 教师管理后台</title>
+<style>
+:root {
+  --primary: #2563eb; --primary-dark: #1d4ed8; --primary-light: #dbeafe;
+  --success: #16a34a; --success-light: #dcfce7;
+  --danger: #dc2626; --danger-light: #fee2e2;
+  --warning: #d97706; --warning-light: #fef3c7;
+  --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb;
+  --gray-300:#d1d5db; --gray-400:#9ca3af; --gray-500:#6b7280;
+  --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4ff;color:var(--gray-800);min-height:100vh}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#eff6ff,#f0f4ff)}
+.login-card{background:white;border-radius:16px;padding:2.5rem;width:380px;box-shadow:0 8px 40px rgba(37,99,235,0.15);border:1px solid var(--gray-200)}
+.login-logo{text-align:center;margin-bottom:2rem}
+.login-icon{width:60px;height:60px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+.login-logo h1{font-size:22px;font-weight:700;color:var(--primary)}
+.login-logo p{font-size:13px;color:var(--gray-400);margin-top:4px}
+.login-err{background:var(--danger-light);color:var(--danger);font-size:13px;padding:8px 12px;border-radius:8px;margin-bottom:12px;display:none}
+
+/* HEADER */
+.header{background:white;border-bottom:1px solid var(--gray-200);height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,0.05)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;color:var(--primary)}
+.logo-box{width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:800}
+.header-right{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--gray-500)}
+
+/* MAIN */
+.main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:1.5rem}
+.stat{background:white;border-radius:10px;border:1px solid var(--gray-200);padding:1rem 1.25rem}
+.stat-label{font-size:11px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.stat-val{font-size:26px;font-weight:800;color:var(--gray-900)}
+.stat-val.blue{color:var(--primary)} .stat-val.green{color:var(--success)} .stat-val.red{color:var(--danger)} .stat-val.orange{color:var(--warning)}
+
+/* CARD */
+.card{background:white;border-radius:12px;border:1px solid var(--gray-200);padding:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:1.5rem}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.card-title{font-size:15px;font-weight:700;color:var(--gray-900)}
+
+/* UPLOAD */
+.drop-zone{border:2px dashed var(--gray-300);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50)}
+.drop-zone:hover,.drop-zone.over{border-color:var(--primary);background:var(--primary-light)}
+.drop-icon{width:48px;height:48px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:20px}
+.drop-zone strong{font-size:14px;color:var(--gray-800)} .drop-zone p{font-size:12px;color:var(--gray-400);margin-top:4px}
+
+/* FILE LIST */
+.file-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem;min-height:20px}
+.file-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-light);color:var(--primary-dark);font-size:12px;font-weight:500;padding:5px 10px;border-radius:20px}
+.chip-del{background:none;border:none;cursor:pointer;color:var(--primary);font-size:14px;line-height:1;padding:0 2px}
+.chip-del:hover{color:var(--danger)}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:9px 12px;background:var(--gray-50);color:var(--gray-500);font-weight:600;border-bottom:1px solid var(--gray-200);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--gray-100)}
+tbody tr:hover{background:var(--gray-50)}
+tbody td{padding:10px 12px;vertical-align:middle}
+.empty-row td{text-align:center;color:var(--gray-400);padding:2rem;font-size:14px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-active{background:var(--success-light);color:var(--success)}
+.b-expired{background:var(--danger-light);color:var(--danger)}
+.b-pending{background:var(--warning-light);color:var(--warning)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;font-family:inherit}
+.btn-primary{background:var(--primary);color:white} .btn-primary:hover{background:var(--primary-dark)}
+.btn-danger{background:var(--danger);color:white} .btn-danger:hover{background:#b91c1c}
+.btn-ghost{background:white;border:1px solid var(--gray-300);color:var(--gray-700)} .btn-ghost:hover{background:var(--gray-50)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* FORM */
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:5px}
+.form-input,.form-select{width:100%;padding:9px 11px;border:1px solid var(--gray-300);border-radius:8px;font-size:13px;font-family:inherit;color:var(--gray-800);background:white;transition:border-color .15s}
+.form-input:focus,.form-select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:white;border-radius:14px;padding:2rem;width:500px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-title{font-size:17px;font-weight:700;color:var(--gray-900);margin-bottom:1.5rem}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--gray-200)}
+
+/* LINK BOX */
+.link-box{display:flex;align-items:center;gap:8px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:7px 12px;margin-top:6px}
+.link-box code{font-family:monospace;font-size:12px;color:var(--primary-dark);flex:1;word-break:break-all}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{background:var(--success);color:white}
+.toast.err{background:var(--danger);color:white}
+
+/* RESPONSIVE */
+@media(max-width:750px){.stats{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="loginPage">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-icon">📚</div>
+        <h1>VocabCloud</h1>
+        <p>词汇学习平台 · 教师管理后台</p>
+      </div>
+      <div class="login-err" id="loginErr"></div>
+      <div class="form-group">
+        <label class="form-label">管理员密码</label>
+        <input class="form-input" type="password" id="pwdInput" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:10px" onclick="doLogin()">登 录</button>
+    </div>
+  </div>
+</div>
+
+<div id="adminPanel" style="display:none">
+  <div class="header">
+    <div class="logo">
+      <div class="logo-box">词</div>
+      VocabCloud
+    </div>
+    <div class="header-right">
+      <span id="domainHint" style="color:var(--primary);font-weight:600"></span>
+      <span>教师管理后台</span>
+      <a href="/admin/logout" style="color:var(--danger);text-decoration:none;font-weight:600">退出登录</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="stats">
+      <div class="stat"><div class="stat-label">词库文件</div><div class="stat-val blue" id="sFiles">—</div></div>
+      <div class="stat"><div class="stat-label">有效链接</div><div class="stat-val green" id="sActive">—</div></div>
+      <div class="stat"><div class="stat-label">已过期</div><div class="stat-val red" id="sExpired">—</div></div>
+      <div class="stat"><div class="stat-label">未开始</div><div class="stat-val orange" id="sPending">—</div></div>
+      <div class="stat"><div class="stat-label">总访问次数</div><div class="stat-val" id="sVisits">—</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">📤 上传词汇 HTML 文件</div></div>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileIn').click()">
+        <div class="drop-icon">📄</div>
+        <strong>点击选择 或 拖拽 HTML 文件到此处</strong>
+        <p>支持 .html 文件 · 最大 20MB · 学生无法获取文件真实地址</p>
+      </div>
+      <input type="file" id="fileIn" accept=".html,.htm" style="display:none" onchange="uploadFile(this)">
+      <div class="file-chips" id="fileChips"><span style="font-size:12px;color:var(--gray-400)">暂无文件，请先上传</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🔗 学生访问链接</div>
+        <button class="btn btn-primary btn-sm" onclick="openModal()">＋ 新建链接</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>名称 / 班级</th>
+              <th>关联文档</th>
+              <th>有效期</th>
+              <th>状态</th>
+              <th>访问</th>
+              <th>密码</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="linksBody">
+            <tr class="empty-row"><td colspan="7">暂无链接</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal">
+    <div class="modal-title">🔗 新建学生访问链接</div>
+    <div class="form-group">
+      <label class="form-label">链接名称（备注）</label>
+      <input class="form-input" id="f_name" placeholder="如：高一2班 第3单元词汇">
+    </div>
+    <div class="form-group">
+      <label class="form-label">关联文档</label>
+      <select class="form-select" id="f_file"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">班级 / 使用对象</label>
+      <input class="form-input" id="f_class" placeholder="如：高一2班">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">开始日期</label>
+        <input class="form-input" type="date" id="f_start">
+      </div>
+      <div class="form-group">
+        <label class="form-label">到期日期 *</label>
+        <input class="form-input" type="date" id="f_end">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">访问密码（可选，留空则无需密码）</label>
+      <input class="form-input" id="f_pass" placeholder="留空则公开访问">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" id="createBtn" onclick="createLink()">✓ 生成链接</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let files = [];
+let links = [];
+
+// ── LOGIN ──
+async function doLogin() {
+  const pwd = document.getElementById('pwdInput').value;
+  const res = await fetch('/admin/login', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: pwd })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('domainHint').textContent = location.host;
+    loadAll();
+  } else {
+    const err = document.getElementById('loginErr');
+    err.textContent = data.message || '密码错误';
+    err.style.display = 'block';
+  }
+}
+
+// ── LOAD DATA ──
+async function loadAll() {
+  await loadFiles();
+  await loadLinks();
+  await loadStats();
+}
+
+async function loadFiles() {
+  const res = await fetch('/api/files', { credentials: 'include' });
+  if (!res.ok) return;
+  files = await res.json();
+  renderFileChips();
+  renderFileSelect();
+}
+
+async function loadLinks() {
+  const res = await fetch('/api/links', { credentials: 'include' });
+  if (!res.ok) return;
+  links = await res.json();
+  renderLinks();
+}
+
+async function loadStats() {
+  const res = await fetch('/api/stats', { credentials: 'include' });
+  if (!res.ok) return;
+  const s = await res.json();
+  document.getElementById('sFiles').textContent = s.totalFiles;
+  document.getElementById('sActive').textContent = s.activeLinks;
+  document.getElementById('sExpired').textContent = s.expiredLinks;
+  document.getElementById('sPending').textContent = s.totalLinks - s.activeLinks - s.expiredLinks;
+  document.getElementById('sVisits').textContent = s.totalVisits;
+}
+
+// ── FILE UPLOAD ──
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) doUpload(f);
+});
+
+function uploadFile(input) {
+  if (input.files[0]) doUpload(input.files[0]);
+  input.value = '';
+}
+
+async function doUpload(file) {
+  const fd = new FormData();
+  fd.append('htmlfile', file);
+  showToast('上传中…', '');
+  
+  // 核心修复：添加 credentials 确保携带 Cookie
+  const res = await fetch('/api/upload', { 
+    method: 'POST', 
+    body: fd,
+    credentials: 'include' 
+  });
+  
+  const data = await res.json();
+  if (data.success) {
+    showToast(`"${file.name}" 上传成功`, 'ok');
+    await loadFiles();
+    await loadStats();
+  } else {
+    if (res.status === 401) {
+      showToast('登录已过期，请刷新页面重新登录', 'err');
+    } else {
+      showToast(data.error || '上传失败', 'err');
+    }
+  }
+}
+
+function renderFileChips() {
+  const el = document.getElementById('fileChips');
+  if (!files.length) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--gray-400)">暂无文件，请先上传</span>';
+    return;
+  }
+  el.innerHTML = files.map(f => `
+    <div class="file-chip">
+      📄 ${f.orig_name}
+      <span style="opacity:.6">(${(f.size/1024).toFixed(1)}KB)</span>
+      <button class="chip-del" onclick="deleteFile(${f.id},'${f.orig_name}')" title="删除">×</button>
+    </div>
+  `).join('');
+}
+
+function renderFileSelect() {
+  const el = document.getElementById('f_file');
+  if (!files.length) {
+    el.innerHTML = '<option value="">（请先上传文件）</option>';
+    return;
+  }
+  el.innerHTML = files.map(f => `<option value="${f.id}">${f.orig_name}</option>`).join('');
+}
+
+async function deleteFile(id, name) {
+  if (!confirm(`确认删除 "${name}"？关联的链接也会一并删除。`)) return;
+  const res = await fetch(`/api/files/${id}`, { method: 'DELETE', credentials: 'include' });
+  const data = await res.json();
+  if (data.success) {
+    showToast('文件已删除', 'ok');
+    await loadAll();
+  }
+}
+
+// ── LINKS ──
+function renderLinks() {
+  const body = document.getElementById('linksBody');
+  if (!links.length) {
+    body.innerHTML = '<tr class="empty-row"><td colspan="7">暂无链接，点击右上角新建</td></tr>';
+    return;
+  }
+  const origin = location.origin;
+  body.innerHTML = links.map(l => {
+    const url = `${origin}/s/${l.token}`;
+    const statusLabel = {active:'✓ 有效', expired:'✗ 已过期', pending:'⏳ 未开始'}[l.status];
+    const statusClass = {active:'b-active', expired:'b-expired', pending:'b-pending'}[l.status];
+    return `
+      <tr>
+        <td>
+          <strong style="font-size:13px">${l.name}</strong>
+          ${l.class_name ? `<br><span style="font-size:11px;color:var(--gray-400)">${l.class_name}</span>` : ''}
+        </td>
+        <td style="font-size:12px;color:var(--gray-500);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.file_name}">${l.file_name}</td>
+        <td style="font-size:12px">
+          <span style="color:var(--gray-400)">开始：</span>${l.start_date}<br>
+          <span style="color:var(--gray-400)">到期：</span><strong>${l.end_date}</strong>
+        </td>
+        <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+        <td style="font-family:monospace;font-size:13px">${l.visits}</td>
+        <td style="font-size:12px">${l.password ? '🔒 有密码' : '<span style="color:var(--gray-400)">无</span>'}</td>
+        <td>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">
+            ${l.status !== 'expired' ? `<button class="btn btn-ghost btn-sm" onclick="copyUrl('${url}')">复制链接</button>` : ''}
+            <button class="btn btn-danger btn-sm" onclick="deleteLink(${l.id})">删除</button>
+          </div>
+          ${l.status !== 'expired' ? `<div class="link-box"><code>${url}</code></div>` : ''}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function copyUrl(url) {
+  navigator.clipboard.writeText(url).then(() => showToast('链接已复制', 'ok'));
+}
+
+async function deleteLink(id) {
+  if (!confirm('确认删除此链接？学生将无法再访问。')) return;
+  const res = await fetch(`/api/links/${id}`, { method: 'DELETE', credentials: 'include' });
+  const data = await res.json();
+  if (data.success) { showToast('链接已删除', 'ok'); await loadAll(); }
+}
+
+// ── MODAL ──
+function openModal() {
+  if (!files.length) { showToast('请先上传 HTML 文件', 'err'); return; }
+  renderFileSelect();
+  const today = new Date().toISOString().split('T')[0];
+  const inThreeMonths = new Date(Date.now()+90*86400000).toISOString().split('T')[0];
+  document.getElementById('f_start').value = today;
+  document.getElementById('f_end').value = inThreeMonths;
+  document.getElementById('f_name').value = '';
+  document.getElementById('f_class').value = '';
+  document.getElementById('f_pass').value = '';
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function closeOverlay(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+
+async function createLink() {
+  const name = document.getElementById('f_name').value.trim();
+  const file_id = document.getElementById('f_file').value;
+  const class_name = document.getElementById('f_class').value.trim();
+  const start_date = document.getElementById('f_start').value;
+  const end_date = document.getElementById('f_end').value;
+  const password = document.getElementById('f_pass').value.trim();
+
+  if (!name) { showToast('请填写链接名称', 'err'); return; }
+  if (!file_id) { showToast('请选择文档', 'err'); return; }
+  if (!end_date) { showToast('请设置到期日期', 'err'); return; }
+
+  const btn = document.getElementById('createBtn');
+  btn.disabled = true;
+  const res = await fetch('/api/links', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    credentials: 'include',
+    body: JSON.stringify({ name, file_id: Number(file_id), class_name, start_date, end_date, password: password || null })
+  });
+  btn.disabled = false;
+  const data = await res.json();
+  if (data.success) {
+    showToast('链接创建成功！', 'ok');
+    closeModal();
+    await loadAll();
+  } else {
+    showToast(data.error || '创建失败', 'err');
+  }
+}
+
+// ── TOAST ──
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show${type ? ' '+type : ''}`;
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.className = 'toast', 2800);
+}
+
+// 自动检查登录状态
+(async function checkSession() {
+  const res = await fetch('/api/stats', { credentials: 'include' });
+  if (res.ok) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    document.getElementById('domainHint').textContent = location.host;
+    loadAll();
+  }
+})();
+</script>
+</body>
+</html>

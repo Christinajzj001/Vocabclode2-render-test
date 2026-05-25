@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>词汇学习 — VocabCloud</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4ff;color:#1f2937;min-height:100vh;display:flex;flex-direction:column}
+.bar{background:white;border-bottom:1px solid #e5e7eb;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar-logo{font-weight:700;font-size:15px;color:#2563eb;display:flex;align-items:center;gap:7px}
+.bar-logo-box{width:26px;height:26px;background:#2563eb;border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:800}
+.expiry-pill{font-size:12px;font-weight:600;padding:4px 12px;border-radius:20px;background:#dcfce7;color:#16a34a}
+.expiry-pill.warn{background:#fef3c7;color:#d97706}
+.expiry-pill.urgent{background:#fee2e2;color:#dc2626}
+
+.frame-wrap{flex:1;display:flex;flex-direction:column;padding:12px}
+.url-bar{background:white;border:1px solid #e5e7eb;border-radius:10px;padding:7px 14px;font-size:12px;font-family:monospace;color:#6b7280;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.dots{display:flex;gap:5px}
+.dot{width:11px;height:11px;border-radius:50%}
+.dot.r{background:#fc5b57} .dot.y{background:#fdbc2f} .dot.g{background:#33c748}
+
+iframe{flex:1;width:100%;border:none;border-radius:10px;background:white;min-height:calc(100vh - 140px)}
+
+.no-dl-notice{font-size:11px;color:#9ca3af;text-align:center;padding:6px;background:#f9fafb;border-top:1px solid #f3f4f6}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="bar-logo">
+    <div class="bar-logo-box">词</div>
+    VocabCloud 词汇学习
+  </div>
+  <div id="expiryPill" class="expiry-pill">加载中…</div>
+</div>
+
+<div class="frame-wrap">
+  <div class="url-bar">
+    <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <span id="urlShow"></span>
+  </div>
+  <iframe id="contentFrame" src="" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+</div>
+<div class="no-dl-notice">🔒 本页面已启用内容保护 · 禁止下载 · 仅限在线学习使用</div>
+
+<script>
+// 从 URL 获取 token
+const token = location.pathname.split('/s/')[1];
+document.getElementById('urlShow').textContent = location.href;
+
+// 加载内容到 iframe
+const frame = document.getElementById('contentFrame');
+frame.src = `/api/content/${token}`;
+
+// 计算剩余天数（从 meta 标签或 API 获取）
+// 这里通过查询 API 获取到期日
+(async function loadExpiry() {
+  try {
+    const res = await fetch(`/api/link-info/${token}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const pill = document.getElementById('expiryPill');
+    const today = new Date();
+    const end = new Date(data.end_date);
+    const diff = Math.ceil((end - today) / 86400000);
+    if (diff <= 0) {
+      pill.textContent = '已过期';
+      pill.className = 'expiry-pill urgent';
+    } else if (diff <= 7) {
+      pill.textContent = `剩余 ${diff} 天（${data.end_date} 到期）`;
+      pill.className = 'expiry-pill urgent';
+    } else if (diff <= 14) {
+      pill.textContent = `剩余 ${diff} 天（${data.end_date} 到期）`;
+      pill.className = 'expiry-pill warn';
+    } else {
+      pill.textContent = `有效期至 ${data.end_date}（剩余 ${diff} 天）`;
+      pill.className = 'expiry-pill';
+    }
+  } catch(e) {}
+})();
+
+// 禁止右键 / 常用快捷键
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  if (
+    (e.ctrlKey && ['s','u','p'].includes(e.key.toLowerCase())) ||
+    (e.ctrlKey && e.shiftKey && ['i','j','c'].includes(e.key.toLowerCase())) ||
+    e.key === 'F12'
+  ) { e.preventDefault(); return false; }
+});
+</script>
+</body>
+</html>

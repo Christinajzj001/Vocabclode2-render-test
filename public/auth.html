@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>请输入访问密码 — VocabCloud</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4ff;min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:white;border-radius:16px;padding:2.5rem;text-align:center;max-width:380px;width:90%;box-shadow:0 8px 40px rgba(37,99,235,0.12)}
+.icon{width:60px;height:60px;background:#dbeafe;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 1.25rem}
+h2{font-size:20px;font-weight:700;color:#111827;margin-bottom:6px}
+p{font-size:13px;color:#6b7280;margin-bottom:1.5rem}
+.err{background:#fee2e2;color:#dc2626;font-size:13px;padding:8px 12px;border-radius:8px;margin-bottom:12px;display:none}
+input{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:14px;font-family:inherit;margin-bottom:12px;outline:none;transition:border-color .15s}
+input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+button{width:100%;padding:10px;background:#2563eb;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+button:hover{background:#1d4ed8}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🔑</div>
+  <h2>需要访问密码</h2>
+  <p>此学习资料已设置密码保护，请输入老师提供的密码。</p>
+  <div class="err" id="err"></div>
+  <input type="password" id="pwd" placeholder="请输入访问密码" onkeydown="if(event.key==='Enter')verify()">
+  <button onclick="verify()">确认进入</button>
+</div>
+<script>
+const token = location.pathname.split('/s/')[1];
+async function verify() {
+  const pwd = document.getElementById('pwd').value;
+  const res = await fetch(`/s/${token}/auth`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ password: pwd })
+  });
+  const data = await res.json();
+  if (data.success) {
+    location.reload();
+  } else {
+    const err = document.getElementById('err');
+    err.textContent = data.message || '密码错误，请重试';
+    err.style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>
