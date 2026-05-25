@@ -8,7 +8,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "better-sqlite3": "npm:@louis49/better-sqlite3-prebuilt@^9.4.3",
+    "better-sqlite3": "^9.4.3",
     "connect-sqlite3": "^0.9.13",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
@@ -20,5 +20,10 @@
   },
   "engines": {
     "node": "18.x"
+  },
+  "build": {
+    "env": {
+      "npm_config_build_from_source": "false"
+    }
   }
 }
